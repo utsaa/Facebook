@@ -1,0 +1,54 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /user
+
+management.endpoints.web.exposure.include: '*'
+
+management.endpoint.health.show-details: always
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  application:
+    name: user-service
+
+
+
+  datasource:
+    name: d1
+    url: jdbc:mysql://localhost:3306/fb
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      service1:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 5
+        ringBufferSizeInHalfOpenState: 3
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+  ratelimiter:
+    instances:
+      service1:
+        limitForPeriod: 10
+        limitRefreshPeriod: 100000
+        timeoutDuration: 1000ms
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
